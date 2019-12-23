@@ -2,6 +2,7 @@ package org.lognet.springboot.grpc.autoconfigure.consul;
 
 import com.ecwid.consul.v1.agent.model.NewService;
 import org.lognet.springboot.grpc.context.GRpcServerInitializedEvent;
+import org.springframework.boot.bind.RelaxedPropertyResolver;
 import org.springframework.cloud.consul.discovery.ConsulDiscoveryProperties;
 import org.springframework.cloud.consul.serviceregistry.ConsulAutoRegistration;
 import org.springframework.cloud.consul.serviceregistry.ConsulRegistration;
@@ -37,7 +38,9 @@ public class GrpcConsulRegistrar implements SmartLifecycle {
         if (!properties.isPreferAgentAddress()) {
             grpcService.setAddress(properties.getHostname());
         }
-        String appName = "grpc-" + ConsulAutoRegistration.getAppName(properties, applicationContext.getEnvironment());
+        RelaxedPropertyResolver propertyResolver =
+new RelaxedPropertyResolver(applicationContext.getEnvironment(), "spring");
+        String appName = "grpc-" + ConsulAutoRegistration.getAppName(properties, propertyResolver);
         grpcService.setName(ConsulAutoRegistration.normalizeForDns(appName));
         grpcService.setId("grpc-" + ConsulAutoRegistration.getInstanceId(properties, applicationContext));
 
