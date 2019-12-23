@@ -1,0 +1,78 @@
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBoot_1_X_Version}")
+    }
+}
+apply plugin: 'com.google.protobuf'
+apply plugin: 'org.springframework.boot'
+
+dependencies {
+
+    compile "org.springframework.boot:spring-boot-starter-actuator"
+    compile 'org.springframework.boot:spring-boot-starter-web'
+
+
+    compile project(':grpc-spring-boot-starter')
+
+    testCompile 'org.springframework.boot:spring-boot-starter-aop'
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+    testCompile 'com.github.stefanbirkner:system-rules:1.18.0'
+}
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/protoGen'
+        }
+    }
+}
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.5.1'
+    }
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}"
+        }
+    }
+
+    generateProtoTasks {
+        ofSourceSet('main').each { task ->
+            task.builtins {
+                java{
+                    outputSubDir = 'protoGen'
+                }
+            }
+            task.plugins {
+                grpc {
+                    outputSubDir = 'protoGen'
+                }
+            }
+        }
+    }
+    generatedFilesBaseDir = "$projectDir/src/"
+}
+
+task cleanProtoGen{
+    doFirst{
+           delete("$projectDir/src/main/protoGen")
+    }
+}
+clean.dependsOn cleanProtoGen
+bootRepackage.enabled  =false
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-starter-parent:${springBoot_1_X_Version}"
+    }
+}
+
+
+
+
+
+
